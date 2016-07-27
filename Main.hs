@@ -11,9 +11,20 @@ main = do
   [path,goal] <- getArgs
   input <- readFile path
   let inputCode = filter allowed input
-  let outputCode = code inputCode
-  writeFile goal outputCode
+  if check inputCode
+  then do 
+    let outputCode = code inputCode
+    writeFile goal outputCode
+  else error "Mismatch between `[` and `]`"
 
+check :: String -> Bool
+check = f 0
+    where
+      f c [] = c == 0
+      f c ('[':xs) = f (c + 1) xs
+      f c (']':xs) = if (c > 0) then f (c - 1) xs else False
+      f c (_:xs) = f c xs
+            
 code :: String -> String
 code input =
     "#include <stdio.h>\n" ++
