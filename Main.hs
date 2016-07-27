@@ -4,11 +4,11 @@ memsize :: Int
 memsize = 30000
     
 allowed :: Char -> Bool
-allowed = (flip elem) "+-<>,.[]"
+allowed = flip elem "+-<>,.[]"
           
 main :: IO ()
 main = do
-  (path:goal:[]) <- getArgs
+  [path,goal] <- getArgs
   input <- readFile path
   let inputCode = filter allowed input
   let outputCode = code inputCode
