@@ -36,11 +36,34 @@ code input =
 
 generate :: String -> String
 generate [] = ""
-generate ('+':xs) = "memory[memptr] += 1;\n" ++ generate xs
-generate ('-':xs) = "memory[memptr] -= 1;\n" ++ generate xs
-generate ('>':xs) = "memptr++;\n" ++ generate xs
-generate ('<':xs) = "memptr--;\n" ++ generate xs
+generate s@('+':xs) = (if i == 1
+                       then "memory[memptr]++;\n" 
+                       else "memory[memptr] += " ++ show i ++ ";\n")
+                      ++ generate cs
+    where (i,cs) = cutPrefix '+' s
+generate s@('-':xs) = (if i == 1
+                       then "memory[memptr]--;\n"
+                       else "memory[memptr] -= " ++ show i ++ ";\n")
+                      ++ generate cs
+    where (i,cs) = cutPrefix '-' s
+generate s@('>':xs) = (if i == 1
+                       then "memptr++;\n"
+                       else "memptr += " ++ show i ++ ";\n")
+                      ++ generate cs
+    where (i,cs) = cutPrefix '>' s
+generate s@('<':xs) = (if i == 1
+                       then "memptr--;\n"
+                       else "memptr -= " ++ show i ++ ";\n")
+                      ++ generate cs
+    where (i,cs) = cutPrefix '<' s
 generate (',':xs) = "memory[memptr] = getchar();\n" ++ generate xs
 generate ('.':xs) = "putchar(memory[memptr]);\n" ++ generate xs
 generate ('[':xs) = "while (memory[memptr] != 0) {\n" ++ generate xs
 generate (']':xs) = "}\n" ++ generate xs
+
+cutPrefix :: Char -> String -> (Int,String) -- Int is amount cut, String is leftover
+cutPrefix c s@(d:ds) = if d == c
+                     then (i + 1, xs)
+                     else (0, s)
+    where (i,xs) = cutPrefix c ds
+cutPrefix _ [] = (0,[])
