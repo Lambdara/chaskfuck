@@ -27,11 +27,11 @@ check = f 0
             
 code :: String -> String
 code input =
-    "#include <stdio.h>\n" ++
+    "#include <stdio.h>\n\n\n" ++
     "int memory[" ++ show memsize ++ "];\n" ++
-    "int memptr=0;\n" ++
+    "int memptr=0;\n\n" ++
     "int main(void) {\n" ++
-    generate input ++
+    (indent . generate) input ++
     "}\n"
 
 generate :: String -> String
@@ -58,12 +58,28 @@ generate s@('<':xs) = (if i == 1
     where (i,cs) = cutPrefix '<' s
 generate (',':xs) = "memory[memptr] = getchar();\n" ++ generate xs
 generate ('.':xs) = "putchar(memory[memptr]);\n" ++ generate xs
-generate ('[':xs) = "while (memory[memptr] != 0) {\n" ++ generate xs
+generate ('[':xs) = "while (memory[memptr] != 0) {\n" ++
+                    (indent . generate) ys ++
+                    generate zs
+    where (ys,zs) = splitOnLoopEnd xs
 generate (']':xs) = "}\n" ++ generate xs
 
+indent :: String -> String
+indent = unlines . map ("    " ++) . lines
+                    
 cutPrefix :: Char -> String -> (Int,String) -- Int is amount cut, String is leftover
 cutPrefix c s@(d:ds) = if d == c
                      then (i + 1, xs)
                      else (0, s)
     where (i,xs) = cutPrefix c ds
 cutPrefix _ [] = (0,[])
+
+splitOnLoopEnd :: String -> (String,String)
+splitOnLoopEnd = f 0
+    where f 0 s@(']':xs) = ("",s)
+          f c (']':xs) = (']':ys,zs)
+              where (ys,zs) = f (c-1) xs
+          f c ('[':xs) = ('[':ys,zs)
+              where (ys,zs) = f (c+1) xs
+          f c (x:xs) = (x:ys,zs)
+              where (ys,zs) = f c xs
