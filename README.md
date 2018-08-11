@@ -1,2 +1,2 @@
-# braiell
-Awful Brainfuck-to-C compiler written in Haskell
+# Chaskfuck
+Simple Haskell Brainfuck-to-C compiler
